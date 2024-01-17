@@ -24,3 +24,4 @@ go.work
 .air.toml
 .air.conf
 tmp/
+database.json

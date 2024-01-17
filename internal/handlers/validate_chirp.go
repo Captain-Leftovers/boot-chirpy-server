@@ -12,7 +12,8 @@ func HandleValidate_chirp(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
 	type returnVal struct {
-		Cleaned_Body string `json:"cleaned_body"`
+		Id   int    `json:"id"`
+		Body string `json:"body"`
 	}
 
 	type parameters struct {
@@ -35,9 +36,9 @@ func HandleValidate_chirp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	result := helpers.CensorProfanity(params.Body)
+	//give id and save to disk
 
 	helpers.RespondWihJSON(w, http.StatusOK, returnVal{
-		Cleaned_Body: result,
+		//return value here
 	})
 }

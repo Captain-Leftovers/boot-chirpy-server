@@ -30,7 +30,7 @@ func main() {
 	//api routes
 	apiRouter.Get("/healthz", handlers.HandleHealthz)
 	apiRouter.HandleFunc("/reset", apiCfg.resetHitsCount)
-	apiRouter.Post("/validate_chirp", handlers.HandleValidate_chirp)
+	apiRouter.Post("/chirps", handlers.HandleValidate_chirp)
 
 	adminRouter := chi.NewRouter()
 	router.Mount("/admin", adminRouter)
