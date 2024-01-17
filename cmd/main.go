@@ -6,6 +6,7 @@ import (
 
 	"github.com/Captain-Leftovers/boot-chirpy-server/internal/handlers"
 	"github.com/Captain-Leftovers/boot-chirpy-server/internal/middleware"
+	"github.com/go-chi/chi/v5"
 )
 
 func main() {
@@ -15,22 +16,35 @@ func main() {
 	}
 
 	filepathRoot := "."
-	port := "3000"
+	port := "8080"
 
-	mux := http.NewServeMux()
-	mux.Handle("/app/", apiCfg.middlewareHitsInc(http.StripPrefix("/app", http.FileServer(http.Dir(filepathRoot)))))
-	mux.HandleFunc("/healthz", handlers.HealthzHandler)
-	mux.HandleFunc("/metrics", apiCfg.numRequests)
-	mux.HandleFunc("/reset", apiCfg.resetHitsCount)
+	router := chi.NewRouter()
 
-	corsMux := middleware.MiddlewareCors(mux)
+	//main router routes
+	router.Handle("/app", apiCfg.middlewareHitsInc(http.StripPrefix("/app", http.FileServer(http.Dir(filepathRoot)))))
+	router.Handle("/app/*", apiCfg.middlewareHitsInc(http.StripPrefix("/app", http.FileServer(http.Dir(filepathRoot)))))
+
+	apiRouter := chi.NewRouter()
+	router.Mount("/api", apiRouter)
+
+	//api routes
+	apiRouter.Get("/healthz", handlers.HandleHealthz)
+	apiRouter.HandleFunc("/reset", apiCfg.resetHitsCount)
+	apiRouter.Post("/validate_chirp", handlers.HandleValidate_chirp)
+
+	adminRouter := chi.NewRouter()
+	router.Mount("/admin", adminRouter)
+
+	//admin routes
+	adminRouter.Get("/metrics", apiCfg.numRequests)
+	corsMux := middleware.MiddlewareCors(router)
 
 	server := &http.Server{
 		Addr:    ":" + port,
 		Handler: corsMux,
 	}
 
-	log.Printf("Serving files from %s on port: %s\n", filepathRoot, port)
+	log.Printf("Serving files from %s on port: http://localhost:%s\n", filepathRoot, port)
 	log.Fatal(server.ListenAndServe())
 
 }

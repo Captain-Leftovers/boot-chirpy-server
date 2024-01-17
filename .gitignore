@@ -19,3 +19,8 @@ out
 
 # Go workspace file
 go.work
+
+# exlude air files
+.air.toml
+.air.conf
+tmp/
