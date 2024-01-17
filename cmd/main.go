@@ -16,7 +16,7 @@ func main() {
 	}
 
 	filepathRoot := "."
-	port := "8080"
+	port := "8001"
 
 	router := chi.NewRouter()
 
