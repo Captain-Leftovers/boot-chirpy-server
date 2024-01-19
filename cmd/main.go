@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/Captain-Leftovers/boot-chirpy-server/internal/database"
-	"github.com/Captain-Leftovers/boot-chirpy-server/internal/handlers"
 	"github.com/Captain-Leftovers/boot-chirpy-server/internal/middleware"
 	"github.com/go-chi/chi/v5"
 )
@@ -14,14 +13,13 @@ func main() {
 
 	db, err := database.InitDB("../internal/database/database.json")
 
-
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	apiCfg := apiConfig{
 		fileserverHits: 0,
-		db:             db,
+		DB:             db,
 	}
 
 	filepathRoot := "."
@@ -37,9 +35,10 @@ func main() {
 	router.Mount("/api", apiRouter)
 
 	//api routes
-	apiRouter.Get("/healthz", handlers.HandleHealthz)
+	apiRouter.Get("/healthz", handleHealthz)
 	apiRouter.HandleFunc("/reset", apiCfg.resetHitsCount)
-	apiRouter.Post("/chirps", handlers.CreateChirp)
+	apiRouter.Post("/chirps", apiCfg.handleCreateChirp)
+	apiRouter.Get("/chirps", apiCfg.handleGetChirps)
 
 	adminRouter := chi.NewRouter()
 	router.Mount("/admin", adminRouter)

@@ -1,4 +1,4 @@
-package handlers
+package main
 
 import (
 	"encoding/json"
@@ -7,24 +7,21 @@ import (
 	"github.com/Captain-Leftovers/boot-chirpy-server/cmd/helpers"
 )
 
-func  CreateChirp(w http.ResponseWriter, r *http.Request) {
+func (cfg *apiConfig) handleCreateChirp(w http.ResponseWriter, r *http.Request) {
 
 	defer r.Body.Close()
-
-	type returnVal struct {
-		Id   int    `json:"id"`
-		Body string `json:"body"`
-	}
 
 	type parameters struct {
 		Body string `json:"body"`
 	}
 
-	params := parameters{}
-
 	decoder := json.NewDecoder(r.Body)
 
+	params := parameters{}
+
 	err := decoder.Decode(&params)
+
+	// it Throws EOF here look at the code ...
 
 	if err != nil {
 		helpers.RespondWithError(w, http.StatusInternalServerError, "Couldn't decode parameters")
@@ -36,8 +33,14 @@ func  CreateChirp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	helpers.RespondWihJSON(w, http.StatusOK, returnVal{
-		Id:   4,
-		Body: params.Body,
-	})
+	cleaned := helpers.CensorProfanity(params.Body)
+
+	chirp, err := cfg.DB.CreateChirp(cleaned)
+
+	if err != nil {
+		helpers.RespondWithError(w, http.StatusInternalServerError, "Couldn't create chirp")
+		return
+	}
+
+	helpers.RespondWihJSON(w, http.StatusCreated, chirp)
 }

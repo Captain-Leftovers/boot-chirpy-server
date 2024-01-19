@@ -14,7 +14,7 @@ type DB struct {
 
 type Chirp struct {
 	Id   int    `json:"id"`
-	Body string `json"body"`
+	Body string `json:"body"`
 }
 
 type DBStructure struct {

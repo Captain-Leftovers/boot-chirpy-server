@@ -9,7 +9,7 @@ import (
 
 type apiConfig struct {
 	fileserverHits int
-	db             *database.DB
+	DB             *database.DB
 }
 
 func (cfg *apiConfig) middlewareHitsInc(next http.Handler) http.Handler {
