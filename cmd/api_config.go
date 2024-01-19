@@ -3,10 +3,13 @@ package main
 import (
 	"fmt"
 	"net/http"
+
+	"github.com/Captain-Leftovers/boot-chirpy-server/internal/database"
 )
 
 type apiConfig struct {
 	fileserverHits int
+	db             *database.DB
 }
 
 func (cfg *apiConfig) middlewareHitsInc(next http.Handler) http.Handler {

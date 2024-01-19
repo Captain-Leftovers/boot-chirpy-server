@@ -7,7 +7,7 @@ import (
 	"github.com/Captain-Leftovers/boot-chirpy-server/cmd/helpers"
 )
 
-func HandleValidate_chirp(w http.ResponseWriter, r *http.Request) {
+func  CreateChirp(w http.ResponseWriter, r *http.Request) {
 
 	defer r.Body.Close()
 
@@ -36,9 +36,8 @@ func HandleValidate_chirp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//give id and save to disk
-
 	helpers.RespondWihJSON(w, http.StatusOK, returnVal{
-		//return value here
+		Id:   4,
+		Body: params.Body,
 	})
 }
