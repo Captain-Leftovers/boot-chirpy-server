@@ -96,6 +96,23 @@ func (db *DB) GetChirps() ([]Chirp, error) {
 	return chirps, nil
 }
 
+func (db *DB) GetChirpById(id int) (Chirp, error) {
+	structure, err := db.loadDB()
+
+	if err != nil {
+		return Chirp{}, err
+	}
+
+	myChirp, ok := structure.Chirps[id]
+
+	if !ok {
+		return myChirp, errors.New("There Is No Chirp with this id")
+	}
+
+	return myChirp, nil
+
+}
+
 func (db *DB) loadDB() (DBStructure, error) {
 	db.mu.RLock()
 	defer db.mu.RUnlock()
