@@ -21,7 +21,7 @@ func (cfg *apiConfig) handleCreateChirp(w http.ResponseWriter, r *http.Request) 
 
 	err := decoder.Decode(&params)
 
-	// it Throws EOF here look at the code ...
+
 
 	if err != nil {
 		helpers.RespondWithError(w, http.StatusInternalServerError, "Couldn't decode parameters")

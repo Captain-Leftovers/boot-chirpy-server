@@ -26,4 +26,5 @@ go.work
 tmp/
 database.json
 .vscode/
+PERSONAL.md
 ```

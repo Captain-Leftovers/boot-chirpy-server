@@ -1,8 +1,10 @@
 package main
 
 import (
+	"flag"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/Captain-Leftovers/boot-chirpy-server/internal/database"
 	"github.com/Captain-Leftovers/boot-chirpy-server/internal/middleware"
@@ -10,6 +12,19 @@ import (
 )
 
 func main() {
+
+	dbg := flag.Bool("debug", false, "Enable debug mode")
+
+	flag.Parse()
+
+	if *dbg {
+		err := os.Remove("../internal/database/database.json")
+
+		if err != nil {
+			log.Println("Failed when deleting database.json", err)
+		}
+
+	}
 
 	db, err := database.InitDB("../internal/database/database.json")
 
@@ -40,6 +55,8 @@ func main() {
 	apiRouter.Post("/chirps", apiCfg.handleCreateChirp)
 	apiRouter.Get("/chirps", apiCfg.handleGetChirps)
 	apiRouter.Get("/chirps/{id}", apiCfg.handleGetChirpById)
+
+	apiRouter.Post("/users", apiCfg.handleCreateUser)
 
 	adminRouter := chi.NewRouter()
 	router.Mount("/admin", adminRouter)
