@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 
 	"github.com/Captain-Leftovers/boot-chirpy-server/cmd/helpers"
@@ -10,12 +9,11 @@ import (
 
 func (cfg *apiConfig) handleCreateUser(w http.ResponseWriter, r *http.Request) {
 
-	log.Println("in create user handle")
-
 	defer r.Body.Close()
 
 	type parameters struct {
-		Email string `json:"email"`
+		Email    string `json:"email"`
+		Password string `json:"password"`
 	}
 
 	decoder := json.NewDecoder(r.Body)
@@ -34,12 +32,17 @@ func (cfg *apiConfig) handleCreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := cfg.DB.CreateUser(params.Email)
-
-	if err != nil {
-		helpers.RespondWithError(w, http.StatusInternalServerError, "Couldn't create user")
+	if len(params.Password) > 140 {
+		helpers.RespondWithError(w, http.StatusBadRequest, "Email is longer than 140 characters")
 		return
 	}
 
-	helpers.RespondWihJSON(w, http.StatusCreated, user)
+	publicUser, err := cfg.DB.CreateUser(params.Email, params.Password)
+
+	if err != nil {
+		helpers.RespondWithError(w, http.StatusInternalServerError, "Couldn't create user reason: "+err.Error())
+		return
+	}
+
+	helpers.RespondWihJSON(w, http.StatusCreated, publicUser)
 }

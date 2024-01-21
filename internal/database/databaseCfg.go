@@ -5,6 +5,8 @@ import (
 	"errors"
 	"os"
 	"sync"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 type DB struct {
@@ -18,6 +20,12 @@ type Chirp struct {
 }
 
 type User struct {
+	Id       int    `json:"id"`
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
+type PublicUser struct {
 	Id    int    `json:"id"`
 	Email string `json:"email"`
 }
@@ -112,7 +120,7 @@ func (db *DB) GetChirpById(id int) (Chirp, error) {
 	myChirp, ok := structure.Chirps[id]
 
 	if !ok {
-		return myChirp, errors.New("There Is No Chirp with this id")
+		return myChirp, errors.New("there Is No Chirp with this id")
 	}
 
 	return myChirp, nil
@@ -162,19 +170,30 @@ func (db *DB) createDBFile() error {
 
 // users
 
-func (db *DB) CreateUser(email string) (User, error) {
+func (db *DB) CreateUser(email string, password string) (PublicUser, error) {
 
 	dbStructure, err := db.loadDB()
 
 	if err != nil {
-		return User{}, err
+		return PublicUser{}, err
 	}
+	for _, v := range dbStructure.Users {
+		if v.Email == email {
+			return PublicUser{}, errors.New("user with this email already exist")
+		}
+	}
+	hashBytesPass, err := bcrypt.GenerateFromPassword([]byte(password), 4)
+	if err != nil {
+		return PublicUser{}, err
+	}
+	hashedPassword := string(hashBytesPass)
 
 	nextId := len(dbStructure.Users) + 1
 
 	user := User{
-		Id:    nextId,
-		Email: email,
+		Id:       nextId,
+		Email:    email,
+		Password: hashedPassword,
 	}
 
 	dbStructure.Users[nextId] = user
@@ -182,9 +201,49 @@ func (db *DB) CreateUser(email string) (User, error) {
 	err = db.WriteDB(dbStructure)
 
 	if err != nil {
-		return User{}, err
+		return PublicUser{}, err
 	}
 
-	return user, nil
+	return PublicUser{
+		Id:    user.Id,
+		Email: user.Email,
+	}, nil
+
+}
+
+func (db *DB) LoginVerification(email string, password string) (PublicUser, error) {
+
+	dbStructure, err := db.loadDB()
+
+	user := User{}
+
+	if err != nil {
+		return PublicUser{}, err
+	}
+
+	for _, usrV := range dbStructure.Users {
+		if usrV.Email == email {
+			user = usrV
+			break
+		}
+
+	}
+
+	if user.Email == "" {
+		return PublicUser{}, errors.New("wrong login credentials entered")
+	}
+
+	// compare password
+
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
+
+	if err != nil {
+		return PublicUser{}, errors.New("wrong login credentials entered")
+	}
+
+	return PublicUser{
+		Id:    user.Id,
+		Email: user.Email,
+	}, nil
 
 }
