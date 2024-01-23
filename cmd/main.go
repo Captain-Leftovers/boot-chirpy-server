@@ -9,9 +9,12 @@ import (
 	"github.com/Captain-Leftovers/boot-chirpy-server/internal/database"
 	"github.com/Captain-Leftovers/boot-chirpy-server/internal/middleware"
 	"github.com/go-chi/chi/v5"
+	"github.com/joho/godotenv"
 )
 
 func main() {
+
+	godotenv.Load("../.env")
 
 	dbg := flag.Bool("debug", false, "Enable debug mode")
 
@@ -27,6 +30,7 @@ func main() {
 	}
 
 	db, err := database.InitDB("../internal/database/database.json")
+	jwtSecret := os.Getenv("JWT_SECRET")
 
 	if err != nil {
 		log.Fatal(err)
@@ -35,6 +39,7 @@ func main() {
 	apiCfg := apiConfig{
 		fileserverHits: 0,
 		DB:             db,
+		jwtSecret:      jwtSecret,
 	}
 
 	filepathRoot := "."
@@ -57,6 +62,7 @@ func main() {
 	apiRouter.Get("/chirps/{id}", apiCfg.handleGetChirpById)
 
 	apiRouter.Post("/users", apiCfg.handleCreateUser)
+	apiRouter.Put("/users", apiCfg.updateUser)
 	apiRouter.Post("/login", apiCfg.handleLogin)
 
 	adminRouter := chi.NewRouter()

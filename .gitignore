@@ -27,4 +27,5 @@ tmp/
 database.json
 .vscode/
 PERSONAL.md
+.env
 ```

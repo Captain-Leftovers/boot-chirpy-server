@@ -10,6 +10,7 @@ import (
 type apiConfig struct {
 	fileserverHits int
 	DB             *database.DB
+	jwtSecret      string
 }
 
 func (cfg *apiConfig) middlewareHitsInc(next http.Handler) http.Handler {
@@ -40,3 +41,4 @@ func (cfg *apiConfig) resetHitsCount(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 
 }
+

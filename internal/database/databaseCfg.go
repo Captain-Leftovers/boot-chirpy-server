@@ -213,6 +213,7 @@ func (db *DB) CreateUser(email string, password string) (PublicUser, error) {
 
 func (db *DB) LoginVerification(email string, password string) (PublicUser, error) {
 
+
 	dbStructure, err := db.loadDB()
 
 	user := User{}
