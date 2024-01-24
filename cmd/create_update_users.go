@@ -46,7 +46,7 @@ func (cfg *apiConfig) handleCreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	helpers.RespondWihJSON(w, http.StatusCreated, publicUser)
+	helpers.RespondWithJSON(w, http.StatusCreated, publicUser)
 }
 
 func (cfg *apiConfig) updateUser(w http.ResponseWriter, r *http.Request) {
@@ -119,6 +119,6 @@ func (cfg *apiConfig) updateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	helpers.RespondWihJSON(w, http.StatusOK, publicUser)
+	helpers.RespondWithJSON(w, http.StatusOK, publicUser)
 
 }

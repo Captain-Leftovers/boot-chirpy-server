@@ -25,5 +25,5 @@ func (cfg *apiConfig) handleGetChirpById(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	helpers.RespondWihJSON(w, http.StatusOK, chirpById)
+	helpers.RespondWithJSON(w, http.StatusOK, chirpById)
 }

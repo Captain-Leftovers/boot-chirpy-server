@@ -6,6 +6,7 @@ import (
 	"os"
 	"strconv"
 	"sync"
+	"time"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -26,14 +27,20 @@ type User struct {
 	Password string `json:"password"`
 }
 
+type RevokedAccessToken struct {
+	Id        string    `json:"id"`
+	RevokedAt time.Time `json:"revokedAt"`
+}
+
 type PublicUser struct {
 	Id    int    `json:"id"`
 	Email string `json:"email"`
 }
 
 type DBStructure struct {
-	Chirps map[int]Chirp `json:"chirps"`
-	Users  map[int]User  `json:"users"`
+	Chirps              map[int]Chirp                 `json:"chirps"`
+	Users               map[int]User                  `json:"users"`
+	RevokedAccessTokens map[string]RevokedAccessToken `json:"revokedAccessTokens"`
 }
 
 func InitDB(path string) (*DB, error) {
@@ -128,6 +135,57 @@ func (db *DB) GetChirpById(id int) (Chirp, error) {
 
 }
 
+// tokens
+
+func (db *DB) CheckIsTokenRevoked(tokenId string) (bool, error) {
+
+	structure, err := db.loadDB()
+
+	if err != nil {
+		return true, err
+	}
+
+	_, ok := structure.RevokedAccessTokens[tokenId]
+
+	if ok {
+		return true, nil
+	}
+
+	return false, nil
+
+}
+
+func (db *DB) RevokeAccessToken(tokenId string) error {
+
+	structure, err := db.loadDB()
+
+	if err != nil {
+		return err
+	}
+
+	_, ok := structure.RevokedAccessTokens[tokenId]
+
+	if ok {
+		return errors.New("token already revoked")
+	}
+
+	token := RevokedAccessToken{
+		Id:        tokenId,
+		RevokedAt: time.Now().UTC(),
+	}
+
+	structure.RevokedAccessTokens[tokenId] = token
+
+	err = db.WriteDB(structure)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+
+}
+
 func (db *DB) loadDB() (DBStructure, error) {
 	db.mu.RLock()
 	defer db.mu.RUnlock()
@@ -162,8 +220,9 @@ func (db *DB) init() error {
 
 func (db *DB) createDBFile() error {
 	structure := DBStructure{
-		Chirps: map[int]Chirp{},
-		Users:  map[int]User{},
+		Chirps:              map[int]Chirp{},
+		Users:               map[int]User{},
+		RevokedAccessTokens: map[string]RevokedAccessToken{},
 	}
 
 	return db.WriteDB(structure)

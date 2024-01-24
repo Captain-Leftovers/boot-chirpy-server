@@ -21,8 +21,6 @@ func (cfg *apiConfig) handleCreateChirp(w http.ResponseWriter, r *http.Request) 
 
 	err := decoder.Decode(&params)
 
-
-
 	if err != nil {
 		helpers.RespondWithError(w, http.StatusInternalServerError, "Couldn't decode parameters")
 		return
@@ -42,5 +40,5 @@ func (cfg *apiConfig) handleCreateChirp(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	helpers.RespondWihJSON(w, http.StatusCreated, chirp)
+	helpers.RespondWithJSON(w, http.StatusCreated, chirp)
 }

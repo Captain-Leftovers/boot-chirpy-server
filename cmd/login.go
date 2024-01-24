@@ -61,7 +61,7 @@ func (cfg *apiConfig) handleLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	helpers.RespondWihJSON(w, http.StatusOK, UserLoginResponse{
+	helpers.RespondWithJSON(w, http.StatusOK, UserLoginResponse{
 		Id:           user.Id,
 		Email:        user.Email,
 		Token:        jwtToken,

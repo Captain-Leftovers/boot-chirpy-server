@@ -19,7 +19,7 @@ func (cfg *apiConfig) handleGetChirps(w http.ResponseWriter, r *http.Request) {
 
 	chirps = mustSortSlice(chirps)
 
-	helpers.RespondWihJSON(w, http.StatusOK, chirps)
+	helpers.RespondWithJSON(w, http.StatusOK, chirps)
 }
 
 func mustSortSlice(slice []database.Chirp) []database.Chirp {
