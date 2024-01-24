@@ -6,13 +6,13 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-func (cfg *apiConfig) generateSignedJWT(expires_in_seconds time.Duration, id string) (string, error) {
+func (cfg *apiConfig) generateSignedJWT(expires_in_seconds time.Duration, id string, issuer string) (string, error) {
 
 	issuedAt := jwt.NewNumericDate(time.Now().UTC())
 	expiresAt := jwt.NewNumericDate(time.Now().UTC().Add(expires_in_seconds))
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.RegisteredClaims{
-		Issuer:    "chirpy",
+		Issuer:    issuer,
 		IssuedAt:  issuedAt,
 		ExpiresAt: expiresAt,
 		Subject:   id,

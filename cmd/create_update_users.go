@@ -76,14 +76,21 @@ func (cfg *apiConfig) updateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !parsedToken.Valid {
-		helpers.RespondWithError(w, http.StatusBadRequest, "Invalid token")
+		helpers.RespondWithError(w, http.StatusUnauthorized, "Invalid token")
+		return
+	}
+
+	issuer := claims.Issuer
+
+	if issuer != "chirpy-access" {
+		helpers.RespondWithError(w, http.StatusUnauthorized, "Invalid token issuer")
 		return
 	}
 
 	userId, err := parsedToken.Claims.GetSubject()
 
 	if err != nil {
-		helpers.RespondWithError(w, http.StatusBadRequest, "Invalid token claim")
+		helpers.RespondWithError(w, http.StatusUnauthorized, "Invalid token claim")
 		return
 	}
 

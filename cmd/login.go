@@ -12,17 +12,17 @@ import (
 func (cfg *apiConfig) handleLogin(w http.ResponseWriter, r *http.Request) {
 
 	type UserLoginResponse struct {
-		Id    int    `json:"id"`
-		Email string `json:"email"`
-		Token string `json:"token"`
+		Id           int    `json:"id"`
+		Email        string `json:"email"`
+		Token        string `json:"token"`
+		RefreshToken string `json:"refresh_token"`
 	}
 
 	defer r.Body.Close()
 
 	type ReqBody struct {
-		Password         string `json:"password"`
-		Email            string `json:"email"`
-		ExpiresInSeconds *int   `json:"expires_in_seconds"`
+		Password string `json:"password"`
+		Email    string `json:"email"`
 	}
 
 	decoder := json.NewDecoder(r.Body)
@@ -36,8 +36,6 @@ func (cfg *apiConfig) handleLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	
-
 	user, err := cfg.DB.LoginVerification(params.Email, params.Password)
 
 	if err != nil {
@@ -45,20 +43,18 @@ func (cfg *apiConfig) handleLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// expires_in_seconds is an optional parameter. If it's specified by the client, use it as the expiration time. If it's not specified, use a default expiration time of 24 hours. If the client specified a number over 24 hours, use 24 hours as the expiration time.
-
-	expirationToSet := time.Duration(24) * time.Hour
-
-	if params.ExpiresInSeconds != nil {
-		givenExpiration := time.Duration(*params.ExpiresInSeconds) * time.Second
-		if givenExpiration < expirationToSet && givenExpiration > 0 {
-			expirationToSet = givenExpiration
-		}
-	}
+	accessTokenExpiration := time.Duration(1) * time.Hour
+	refreshTokenExpiration := time.Duration(60) * 24 * time.Hour
 
 	idString := fmt.Sprintf("%d", user.Id)
 
-	jwtToken, err := cfg.generateSignedJWT(expirationToSet, idString)
+	jwtToken, err := cfg.generateSignedJWT(accessTokenExpiration, idString, "chirpy-access")
+
+	if err != nil {
+		helpers.RespondWithError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	refreshToken, err := cfg.generateSignedJWT(refreshTokenExpiration, idString, "chirpy-refresh")
 
 	if err != nil {
 		helpers.RespondWithError(w, http.StatusInternalServerError, err.Error())
@@ -66,9 +62,10 @@ func (cfg *apiConfig) handleLogin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	helpers.RespondWihJSON(w, http.StatusOK, UserLoginResponse{
-		Id:    user.Id,
-		Email: user.Email,
-		Token: jwtToken,
+		Id:           user.Id,
+		Email:        user.Email,
+		Token:        jwtToken,
+		RefreshToken: refreshToken,
 	})
 
 }
