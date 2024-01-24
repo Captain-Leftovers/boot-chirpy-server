@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"os"
+	"strconv"
 	"sync"
 
 	"golang.org/x/crypto/bcrypt"
@@ -211,8 +212,52 @@ func (db *DB) CreateUser(email string, password string) (PublicUser, error) {
 
 }
 
-func (db *DB) LoginVerification(email string, password string) (PublicUser, error) {
+func (db *DB) UpdateUser(email string, password string, id string) (PublicUser, error) {
 
+	dbStructure, err := db.loadDB()
+
+	if err != nil {
+		return PublicUser{}, err
+	}
+
+	err = db.WriteDB(dbStructure)
+
+	if err != nil {
+		return PublicUser{}, err
+	}
+
+	idNum, err := strconv.Atoi(id)
+
+	if err != nil {
+		return PublicUser{}, err
+	}
+
+	if dbStructure.Users[idNum].Id != idNum {
+		return PublicUser{}, errors.New("user with this id doesn't exist")
+	}
+
+	User := User{
+		Id:       idNum,
+		Email:    email,
+		Password: password,
+	}
+
+	dbStructure.Users[idNum] = User
+
+	err = db.WriteDB(dbStructure)
+
+	if err != nil {
+		return PublicUser{}, err
+	}
+
+	return PublicUser{
+		Id:    idNum,
+		Email: email,
+	}, nil
+
+}
+
+func (db *DB) LoginVerification(email string, password string) (PublicUser, error) {
 
 	dbStructure, err := db.loadDB()
 

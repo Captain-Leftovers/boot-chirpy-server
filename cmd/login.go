@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -18,7 +19,7 @@ func (cfg *apiConfig) handleLogin(w http.ResponseWriter, r *http.Request) {
 
 	defer r.Body.Close()
 
-	type reqBody struct {
+	type ReqBody struct {
 		Password         string `json:"password"`
 		Email            string `json:"email"`
 		ExpiresInSeconds *int   `json:"expires_in_seconds"`
@@ -26,7 +27,7 @@ func (cfg *apiConfig) handleLogin(w http.ResponseWriter, r *http.Request) {
 
 	decoder := json.NewDecoder(r.Body)
 
-	params := reqBody{}
+	params := ReqBody{}
 
 	err := decoder.Decode(&params)
 
@@ -34,6 +35,8 @@ func (cfg *apiConfig) handleLogin(w http.ResponseWriter, r *http.Request) {
 		helpers.RespondWithError(w, http.StatusInternalServerError, "Couldn't decode parameters")
 		return
 	}
+
+	
 
 	user, err := cfg.DB.LoginVerification(params.Email, params.Password)
 
@@ -53,7 +56,9 @@ func (cfg *apiConfig) handleLogin(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	jwtToken, err := cfg.generateSignedJWT(expirationToSet, string(user.Id))
+	idString := fmt.Sprintf("%d", user.Id)
+
+	jwtToken, err := cfg.generateSignedJWT(expirationToSet, idString)
 
 	if err != nil {
 		helpers.RespondWithError(w, http.StatusInternalServerError, err.Error())

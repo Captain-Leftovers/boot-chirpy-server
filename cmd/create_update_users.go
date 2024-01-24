@@ -2,25 +2,25 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"github.com/Captain-Leftovers/boot-chirpy-server/cmd/helpers"
 	"github.com/golang-jwt/jwt/v5"
+	"golang.org/x/crypto/bcrypt"
 )
+
+type parametersType struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
 
 func (cfg *apiConfig) handleCreateUser(w http.ResponseWriter, r *http.Request) {
 
 	defer r.Body.Close()
 
-	type parameters struct {
-		Email    string `json:"email"`
-		Password string `json:"password"`
-	}
-
 	decoder := json.NewDecoder(r.Body)
 
-	params := parameters{}
+	params := parametersType{}
 
 	err := decoder.Decode(&params)
 
@@ -69,10 +69,9 @@ func (cfg *apiConfig) updateUser(w http.ResponseWriter, r *http.Request) {
 
 	})
 
-	//gives error here not valid token after parsing look there
-
 	if err != nil {
-		helpers.RespondWithError(w, http.StatusBadRequest, "Invalid token")
+
+		helpers.RespondWithError(w, http.StatusUnauthorized, "Invalid token")
 		return
 	}
 
@@ -81,13 +80,38 @@ func (cfg *apiConfig) updateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	useId, err := parsedToken.Claims.GetSubject()
+	userId, err := parsedToken.Claims.GetSubject()
 
 	if err != nil {
 		helpers.RespondWithError(w, http.StatusBadRequest, "Invalid token claim")
 		return
 	}
 
-	fmt.Println(useId)
+	params := parametersType{}
+
+	decoder := json.NewDecoder(r.Body)
+
+	err = decoder.Decode(&params)
+
+	if err != nil {
+		helpers.RespondWithError(w, http.StatusInternalServerError, "Couldn't decode parameters")
+		return
+	}
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(params.Password), 4)
+
+	if err != nil {
+		helpers.RespondWithError(w, http.StatusInternalServerError, "Couldn't hash password")
+		return
+	}
+
+	publicUser, err := cfg.DB.UpdateUser(params.Email, string(hashedPassword), userId)
+
+	if err != nil {
+		helpers.RespondWithError(w, http.StatusInternalServerError, "Couldn't update user reason: "+err.Error())
+		return
+	}
+
+	helpers.RespondWihJSON(w, http.StatusOK, publicUser)
 
 }

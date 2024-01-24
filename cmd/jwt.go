@@ -8,10 +8,13 @@ import (
 
 func (cfg *apiConfig) generateSignedJWT(expires_in_seconds time.Duration, id string) (string, error) {
 
+	issuedAt := jwt.NewNumericDate(time.Now().UTC())
+	expiresAt := jwt.NewNumericDate(time.Now().UTC().Add(expires_in_seconds))
+
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.RegisteredClaims{
 		Issuer:    "chirpy",
-		IssuedAt:  jwt.NewNumericDate(time.Now().UTC()),
-		ExpiresAt: jwt.NewNumericDate(time.Now().UTC().Add(time.Duration(expires_in_seconds) * time.Second)),
+		IssuedAt:  issuedAt,
+		ExpiresAt: expiresAt,
 		Subject:   id,
 	})
 
