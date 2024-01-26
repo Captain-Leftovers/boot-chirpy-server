@@ -60,6 +60,7 @@ func main() {
 	apiRouter.Post("/chirps", apiCfg.handleCreateChirp)
 	apiRouter.Get("/chirps", apiCfg.handleGetChirps)
 	apiRouter.Get("/chirps/{id}", apiCfg.handleGetChirpById)
+	apiRouter.Delete("/chirps/{chirpID}", apiCfg.handleDeleteChirp)
 
 	apiRouter.Post("/users", apiCfg.handleCreateUser)
 	apiRouter.Put("/users", apiCfg.updateUser)

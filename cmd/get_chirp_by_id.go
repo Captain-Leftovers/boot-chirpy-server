@@ -10,6 +10,8 @@ import (
 
 func (cfg *apiConfig) handleGetChirpById(w http.ResponseWriter, r *http.Request) {
 
+	defer r.Body.Close()
+
 	idString := chi.URLParam(r, "id")
 
 	id, err := strconv.Atoi(idString)

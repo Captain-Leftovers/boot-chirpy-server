@@ -354,3 +354,27 @@ func (db *DB) LoginVerification(email string, password string) (PublicUser, erro
 	}, nil
 
 }
+
+func (db *DB) DeleteChirp(chirpID int, userId int) error {
+
+	dbStructure, err := db.loadDB()
+
+	if err != nil {
+		return err
+	}
+
+	if dbStructure.Chirps[chirpID].AuthorId != userId {
+		return errors.New("you can only delete your own chirps")
+	}
+
+	delete(dbStructure.Chirps, chirpID)
+
+	err = db.WriteDB(dbStructure)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+
+}
