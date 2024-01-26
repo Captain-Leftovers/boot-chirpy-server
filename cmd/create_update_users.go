@@ -87,12 +87,7 @@ func (cfg *apiConfig) updateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userId, err := parsedToken.Claims.GetSubject()
-
-	if err != nil {
-		helpers.RespondWithError(w, http.StatusUnauthorized, "Invalid token claim")
-		return
-	}
+	userId := claims.Subject
 
 	params := parametersType{}
 

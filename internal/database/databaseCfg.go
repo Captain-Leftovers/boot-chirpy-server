@@ -17,8 +17,9 @@ type DB struct {
 }
 
 type Chirp struct {
-	Id   int    `json:"id"`
-	Body string `json:"body"`
+	Id       int    `json:"id"`
+	Body     string `json:"body"`
+	AuthorId int    `json:"author_id"`
 }
 
 type User struct {
@@ -75,7 +76,7 @@ func (db *DB) WriteDB(structure DBStructure) error {
 
 }
 
-func (db *DB) CreateChirp(body string) (Chirp, error) {
+func (db *DB) CreateChirp(body string, authorId int) (Chirp, error) {
 
 	dbStructure, err := db.loadDB()
 
@@ -86,8 +87,9 @@ func (db *DB) CreateChirp(body string) (Chirp, error) {
 	nextId := len(dbStructure.Chirps) + 1
 
 	chirp := Chirp{
-		Id:   nextId,
-		Body: body,
+		Id:       nextId,
+		Body:     body,
+		AuthorId: authorId,
 	}
 
 	dbStructure.Chirps[nextId] = chirp
