@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"os"
-	"strconv"
 	"sync"
 	"time"
 
@@ -23,9 +22,10 @@ type Chirp struct {
 }
 
 type User struct {
-	Id       int    `json:"id"`
-	Email    string `json:"email"`
-	Password string `json:"password"`
+	Id          int    `json:"id"`
+	Email       string `json:"email"`
+	Password    string `json:"password"`
+	IsChirpyRed bool   `json:"is_chirpy_red"`
 }
 
 type RevokedAccessToken struct {
@@ -34,8 +34,9 @@ type RevokedAccessToken struct {
 }
 
 type PublicUser struct {
-	Id    int    `json:"id"`
-	Email string `json:"email"`
+	Id          int    `json:"id"`
+	Email       string `json:"email"`
+	IsChirpyRed bool   `json:"is_chirpy_red"`
 }
 
 type DBStructure struct {
@@ -253,9 +254,10 @@ func (db *DB) CreateUser(email string, password string) (PublicUser, error) {
 	nextId := len(dbStructure.Users) + 1
 
 	user := User{
-		Id:       nextId,
-		Email:    email,
-		Password: hashedPassword,
+		Id:          nextId,
+		Email:       email,
+		Password:    hashedPassword,
+		IsChirpyRed: false,
 	}
 
 	dbStructure.Users[nextId] = user
@@ -267,13 +269,14 @@ func (db *DB) CreateUser(email string, password string) (PublicUser, error) {
 	}
 
 	return PublicUser{
-		Id:    user.Id,
-		Email: user.Email,
+		Id:          user.Id,
+		Email:       user.Email,
+		IsChirpyRed: user.IsChirpyRed,
 	}, nil
 
 }
 
-func (db *DB) UpdateUser(email string, password string, id string) (PublicUser, error) {
+func (db *DB) UpdateUser(email string, password string, id int, isChirpyRed *bool) (PublicUser, error) {
 
 	dbStructure, err := db.loadDB()
 
@@ -287,23 +290,32 @@ func (db *DB) UpdateUser(email string, password string, id string) (PublicUser, 
 		return PublicUser{}, err
 	}
 
-	idNum, err := strconv.Atoi(id)
-
-	if err != nil {
-		return PublicUser{}, err
-	}
-
-	if dbStructure.Users[idNum].Id != idNum {
+	if dbStructure.Users[id].Id != id {
 		return PublicUser{}, errors.New("user with this id doesn't exist")
 	}
 
-	User := User{
-		Id:       idNum,
-		Email:    email,
-		Password: password,
+	if email == "" {
+		email = dbStructure.Users[id].Email
 	}
 
-	dbStructure.Users[idNum] = User
+	if password == "" {
+		password = dbStructure.Users[id].Password
+	}
+
+	isRed := dbStructure.Users[id].IsChirpyRed
+
+	if isChirpyRed != nil {
+		isRed = *isChirpyRed
+	}
+
+	user := User{
+		Id:          id,
+		Email:       email,
+		Password:    password,
+		IsChirpyRed: isRed,
+	}
+
+	dbStructure.Users[id] = user
 
 	err = db.WriteDB(dbStructure)
 
@@ -312,7 +324,7 @@ func (db *DB) UpdateUser(email string, password string, id string) (PublicUser, 
 	}
 
 	return PublicUser{
-		Id:    idNum,
+		Id:    id,
 		Email: email,
 	}, nil
 
@@ -349,8 +361,9 @@ func (db *DB) LoginVerification(email string, password string) (PublicUser, erro
 	}
 
 	return PublicUser{
-		Id:    user.Id,
-		Email: user.Email,
+		Id:          user.Id,
+		Email:       user.Email,
+		IsChirpyRed: user.IsChirpyRed,
 	}, nil
 
 }

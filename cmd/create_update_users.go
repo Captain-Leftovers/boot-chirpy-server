@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 
 	"github.com/Captain-Leftovers/boot-chirpy-server/cmd/helpers"
 	"github.com/golang-jwt/jwt/v5"
@@ -107,7 +108,14 @@ func (cfg *apiConfig) updateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	publicUser, err := cfg.DB.UpdateUser(params.Email, string(hashedPassword), userId)
+	userIdInt, err := strconv.Atoi(userId)
+
+	if err != nil {
+		helpers.RespondWithError(w, http.StatusInternalServerError, "Couldn't convert userId to int")
+		return
+	}
+
+	publicUser, err := cfg.DB.UpdateUser(params.Email, string(hashedPassword), userIdInt, nil)
 
 	if err != nil {
 		helpers.RespondWithError(w, http.StatusInternalServerError, "Couldn't update user reason: "+err.Error())
